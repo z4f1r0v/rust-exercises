@@ -18,18 +18,20 @@ fn main() {
         io::stdin().read_line(&mut choice)
             .expect("Failed to read line");
 
-        let choice: GameElement = match choice.parse() {
-            Ok(c)  => c,
+        let choice: GameElement = match choice
+            .strip_suffix("\n")
+            .unwrap_or(choice.as_str())
+            .parse() {
+            Ok(c) => c,
             Err(_) => {
                 println!("Please enter (r)ock, (p)aper, or (s)cissors");
-                continue
-            },
+                continue;
+            }
         };
 
         // plays one round of the game and prints results
         game.play(choice);
         println!("Results: {:?}", game);
-        println!("");
-
+        println!();
     }
 }

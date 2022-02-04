@@ -1,9 +1,12 @@
+use std::cmp::Ordering;
+use std::fmt;
+use std::str::FromStr;
+
 use rand::distributions::Distribution;
 use rand::distributions::Standard;
-use std::cmp::Ordering;
 use simple_error::SimpleError;
-use std::str::FromStr;
-use std::fmt;
+
+use GameElement::*;
 
 /// The base type for representing Rock, Paper, and Scissors, which are all the
 /// possible choices in our game.
@@ -25,14 +28,11 @@ pub enum GameElement {
 /// assert_eq!(comparison, true);
 ///```
 impl Ord for GameElement {
-
     /// FIX ME!
     /// This allows users to compare Rock, Paper, and Scissors by defining
     /// the relationships between the three elements. e.g. Rock == Rock
     /// and Paper < Scissors.
     fn cmp(&self, other: &Self) -> Ordering {
-
-        use GameElement::*;
         use Ordering::*;
 
         // This one is tricky. What are all the cases we need to cover? Do we have
@@ -41,7 +41,12 @@ impl Ord for GameElement {
         // need to cover all cases.
         match (self, other) {
             (Rock, Paper) => Less,
-            _             => Greater,
+            (Paper, Rock) => Greater,
+            (Paper, Scissors) => Less,
+            (Scissors, Paper) => Greater,
+            (Scissors, Rock) => Less,
+            (Rock, Scissors) => Greater,
+            _ => Equal,
         }
     }
 }
@@ -59,7 +64,6 @@ impl PartialOrd for GameElement {
 
 /// Allows callers to randomly generate game choices.
 impl Distribution<GameElement> for Standard {
-
     fn sample<R: rand::Rng + ?Sized>(&self, rng: &mut R) -> GameElement {
 
         // randomly chooses 1, 2, or 3
@@ -70,13 +74,11 @@ impl Distribution<GameElement> for Standard {
             2 => GameElement::Paper,
             _ => GameElement::Scissors,
         }
-
     }
 }
 
 /// Console-friendly string representation of each element.
 impl fmt::Display for GameElement {
-
     /// FIX ME!
     /// This displays a user friendly string representation of all three
     /// `GameElement` variants.
@@ -85,7 +87,11 @@ impl fmt::Display for GameElement {
         // Right now this always returns "Rock" no matter what element
         // we have. You can use `self` (an instance of `GameElement`) to
         // fix up our printer.
-        let printable_str = "Rock";
+        let printable_str = match self {
+            Rock => "Rock",
+            Paper => "Paper",
+            Scissors => "Scissors"
+        };
 
         // The last line calls `write!` with the given formatter. You do not
         // need to modify it.
@@ -102,8 +108,12 @@ impl FromStr for GameElement {
     /// Takes a string slice as input and either parses it into a `GameElement`
     /// or returns an error.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s == "r\n" {
-            Ok(GameElement::Rock)
+        if s == "r" {
+            Ok(Rock)
+        } else if s == "p" {
+            Ok(Paper)
+        } else if s == "s" {
+            Ok(Scissors)
         } else {
             Err(SimpleError::new("Choice must start with r, p, or s"))
         }
@@ -117,13 +127,21 @@ mod test {
 
     #[test]
     fn test_ordering() {
-        use GameElement::*;
-
-        // does this test everything we need?
         assert!(Rock < Paper && Paper < Scissors && Scissors < Rock);
+    }
+
+    #[test]
+    fn test_string_representation() {
+        assert!(GameElement::from_str("r").unwrap() == Rock);
+        assert!(GameElement::from_str("p").unwrap() == Paper);
+        assert!(GameElement::from_str("s").unwrap() == Scissors);
+    }
+
+    #[test]
+    fn test_unsupported_input() {
+        assert!(GameElement::from_str("z") == Err(SimpleError::new("Choice must start with r, p, or s")));
     }
 
     // add additional tests to make sure we can parse game elements from
     // strings and also display them
-
 }

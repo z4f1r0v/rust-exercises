@@ -7,12 +7,12 @@ fn main() {
         println!("Give me a number, any number!");
 
         // this variable can be used to store the string input from the user
-        let mut number = String::new();
+        let mut number = String::from("10");
 
         // this should be replaced with code that tries to parse `number`
         // into a value of `u32`, or otherwise go back to the beginning of the
         // loop
-        let number: u32 = 0;
+        let number: u32 = number.parse().unwrap();
 
         // make sure to modify `sum_one_to_n` in `libr.rs`. the stub
         // implementation included with this problem always returns 0.

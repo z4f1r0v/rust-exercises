@@ -5,7 +5,7 @@ use std::time::Duration;
 
 /// A visitor in our internet cafe. We assign them an id and some amount of time
 /// to visit.
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Visitor {
     id: u32,
     minutes_per_visit: u32
@@ -62,4 +62,6 @@ impl Visitor {
 
         visitors
     }
+
+
 }

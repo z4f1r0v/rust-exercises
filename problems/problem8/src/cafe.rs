@@ -1,8 +1,8 @@
-use std::vec::Vec;
-use std::thread;
 use std::sync::mpsc;
-use crate::visitor::Visitor;
+use std::thread;
+use std::vec::Vec;
 
+use crate::visitor::Visitor;
 
 /// Our little internet cafe, which is a group of visitors and some number of
 /// computers. For this exercise there's no need to allow visitors to join
@@ -11,14 +11,12 @@ use crate::visitor::Visitor;
 #[derive(Debug)]
 pub struct Cafe {
     visitors: Vec<Visitor>,
-    available_computers: u32
+    available_computers: u32,
 }
 
 impl Cafe {
-
     /// Creates a brand new internet cafe in no time at all. Amazing!
     pub fn new(visitors: Vec<Visitor>, available_computers: u32) -> Self {
-
         Cafe {
             visitors: visitors,
             available_computers: available_computers,
@@ -31,8 +29,24 @@ impl Cafe {
     /// It will also need to use `self.handle_msg` in two places (check its
     /// comments for another hint).
     pub fn run_simulation(mut self) {
+        let (tx, rx) = mpsc::channel();
+        while !self.visitors.is_empty() {
+            if self.available_computers > 0 {
+                let visitor: Visitor = self.visitors.pop().unwrap();
+                let tx_visitor = tx.clone();
+                self.allocate_computer(visitor, tx_visitor);
+            }
 
-        println!("There's no simulation here yet... good luck!");
+            if let Ok(m) = rx.try_recv() {
+                self.handle_msg(m.to_string());
+            }
+        }
+
+        drop(tx);
+
+        for msg in rx {
+            self.handle_msg(msg)
+        }
     }
 
     /// Here we need to go through all the steps of announcing a visitor, giving
@@ -41,7 +55,13 @@ impl Cafe {
     /// all done. Check `visitor.rs` to see what methods you have available to
     /// you.
     fn allocate_computer(&mut self, v: Visitor, sender: mpsc::Sender<String>) {
-        println!("Fix me! I'm not allocating anything right now.");
+        println!("{}", &v.visit_start());
+        thread::spawn(move || {
+            v.visit();
+            sender.send(v.visit_summary()).unwrap();
+        });
+
+        self.available_computers -= 1;
     }
 
     /// We have to be prepared to receive messages at different times (while
@@ -50,7 +70,6 @@ impl Cafe {
     /// and make a computer available again.
     fn handle_msg(&mut self, msg: String) {
         println!("{}", msg);
-        self.available_computers = self.available_computers + 1;
+        self.available_computers += 1;
     }
-
 }

@@ -1,9 +1,5 @@
 pub fn find_largest_element(elems: &Vec<i64>) -> Option<i64> {
-
-    // this will compile (with warnings), but some tests will fail.
-    // replace the code below with your own solution!
-    None
-
+    elems.iter().cloned().max()
 }
 
 #[cfg(test)]

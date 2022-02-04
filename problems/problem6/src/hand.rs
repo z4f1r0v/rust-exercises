@@ -39,7 +39,13 @@ impl Hand {
         // Note that you can leverage the underlying rank.value() method of
         // the cards, but you'll need some special handling to decide when
         // to count an ace as 1 vs. 11
-        0
+        self.cards.iter().fold(0, |acc, &c| {
+            if c.rank == Rank::Ace && acc > 10 {
+                acc + 1
+            } else {
+                acc + c.rank.value()
+            }
+        })
     }
 }
 
